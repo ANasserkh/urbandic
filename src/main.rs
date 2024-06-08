@@ -10,6 +10,7 @@ mod jwt;
 mod database;
 mod user;
 mod response;
+mod password_manager;
 #[launch]
 fn rocket() -> _ {
     dotenv().ok();
