@@ -83,7 +83,7 @@ async fn list(
     mut db: Connection<Db>,
     claims: Claims,
 ) -> Result<Json<Vec<User>>, Unauthorized<String>> {
-    if claims.is_admin {
+    if claims.is_admin  == false {
         return Err(Unauthorized("you don't have permissions".to_string()));
     }
 
@@ -97,7 +97,7 @@ async fn delete(
     claims: Claims,
     id: i32,
 ) -> Result<NoContent, Unauthorized<String>> {
-    if claims.is_admin {
+    if claims.is_admin  == false {
         return Err(Unauthorized("you don't have permissions".to_string()));
     }
 

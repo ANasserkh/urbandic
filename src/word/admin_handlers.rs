@@ -24,7 +24,7 @@ async fn get_unapproved(
     page_index: i64,
     limit: i64,
 ) -> Result<Json<Vec<Word>>, Unauthorized<String>> {
-    if claims.is_admin {
+    if claims.is_admin == false {
         return Err(Unauthorized("you don't have permissions".to_string()));
     }
     let words = words::table
@@ -38,13 +38,13 @@ async fn get_unapproved(
     Ok(Json(words))
 }
 
-#[delete("/<id>")]
+#[delete("/admin/<id>")]
 async fn delete(
     mut db: Connection<Db>,
     id: i32,
     claims: Claims,
 ) -> Result<NoContent, Unauthorized<String>> {
-    if claims.is_admin {
+    if claims.is_admin == false {
         return Err(Unauthorized("you don't have permissions".to_string()));
     }
     let _ = diesel::delete(
@@ -58,7 +58,7 @@ async fn delete(
     Ok(NoContent)
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 struct UpdateWordStatus {
     id: i32,
@@ -71,7 +71,7 @@ async fn update_status(
     claims: Claims,
     update_status: Json<UpdateWordStatus>,
 ) -> Result<NoContent, Unauthorized<String>> {
-    if claims.is_admin {
+    if claims.is_admin == false {
         return Err(Unauthorized("you don't have permissions".to_string()));
     }
     let _ = diesel::update(words::table)
