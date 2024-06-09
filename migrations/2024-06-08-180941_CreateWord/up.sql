@@ -1,0 +1,8 @@
+-- Your SQL goes here
+ CREATE TABLE words (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR NOT NULL,
+  description VARCHAR NOT NULL,
+  character char NOT NULL GENERATED ALWAYS AS (SUBSTRING(title FROM 1 FOR 1)) STORED,
+  approved BOOLEAN NOT NULL DEFAULT FALSE
+);

@@ -6,12 +6,12 @@ use crate::{
 use rocket::{
     fairing::AdHoc,
     response::{
-        status::{BadRequest, Created, NotFound},
+        status::{BadRequest, Created, NoContent, NotFound, Unauthorized},
         Debug,
     },
     serde::{json::Json, Deserialize, Serialize},
 };
-use rocket_db_pools::{Connection, Database};
+use rocket_db_pools::Connection;
 
 use rocket_db_pools::diesel::prelude::*;
 
@@ -78,10 +78,37 @@ async fn login<'a>(
     }
 }
 
+#[get("/list")]
+async fn list(
+    mut db: Connection<Db>,
+    claims: Claims,
+) -> Result<Json<Vec<User>>, Unauthorized<String>> {
+    if claims.is_admin {
+        return Err(Unauthorized("you don't have permissions".to_string()));
+    }
+
+    let users = users::table.load(&mut db).await.unwrap();
+    return Ok(Json(users));
+}
+
+#[delete("/<id>")]
+async fn delete(
+    mut db: Connection<Db>,
+    claims: Claims,
+    id: i32,
+) -> Result<NoContent, Unauthorized<String>> {
+    if claims.is_admin {
+        return Err(Unauthorized("you don't have permissions".to_string()));
+    }
+
+    let _ = diesel::delete(users::table.filter(users::id.eq(id)))
+        .execute(&mut db)
+        .await;
+    return Ok(NoContent);
+}
+
 pub fn stage() -> AdHoc {
     AdHoc::on_ignite("users endpoint", |rocket| async {
-        rocket
-            .attach(Db::init())
-            .mount("/users", routes![singup, login])
+        rocket.mount("/users", routes![singup, login, list, delete])
     })
 }
